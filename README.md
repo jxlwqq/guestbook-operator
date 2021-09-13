@@ -53,3 +53,15 @@ operator-sdk create api \
 --version=v1alpha1 \
 --kind=Guestbook
 ```
+
+
+定义 Guestbook 自定义资源（CR）的 API。
+
+修改 api/v1alpha1/guestbook_types.go 中的 Go 类型定义，使其具有以下 spec 和 status
+
+```go
+type GuestbookSpec struct {
+	FrontendSize int32 `json:"frontendSize"`
+	RedisFollowerSize int32 `json:"redisFollowerSize"`
+}
+```
