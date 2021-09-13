@@ -65,3 +65,10 @@ type GuestbookSpec struct {
 	RedisFollowerSize int32 `json:"redisFollowerSize"`
 }
 ```
+
+
+
+为资源类型更新生成的代码：
+```shell
+make generate
+```
