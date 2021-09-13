@@ -321,3 +321,14 @@ redis-follower-76c5cc5b79-fxxlq   1/1     Running   0          50s
 redis-follower-76c5cc5b79-g8vnf   1/1     Running   0          50s
 redis-leader-6666df964-vjhp2      1/1     Running   0          50s
 ```
+
+### 做好清理
+
+```shell
+operator-sdk cleanup guestbook-operator
+operator-sdk olm uninstall
+```
+
+### 更多
+
+更多经典示例请参考：https://github.com/jxlwqq/kubernetes-examples
