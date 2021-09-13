@@ -18,6 +18,9 @@ package controllers
 
 import (
 	"context"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -36,6 +39,9 @@ type GuestbookReconciler struct {
 //+kubebuilder:rbac:groups=app.jxlwqq.github.io,resources=guestbooks,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=app.jxlwqq.github.io,resources=guestbooks/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=app.jxlwqq.github.io,resources=guestbooks/finalizers,verbs=update
+//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=service,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -47,9 +53,54 @@ type GuestbookReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.9.2/pkg/reconcile
 func (r *GuestbookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	reqLogger := log.FromContext(ctx)
+	reqLogger.Info("Reconciling Guestbook")
 
-	// your logic here
+	guestbook := &appv1alpha1.Guestbook{}
+	err := r.Client.Get(context.TODO(), req.NamespacedName, guestbook)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		return ctrl.Result{}, err
+	}
+
+	var result = &ctrl.Result{}
+
+	result, err = r.ensureDeployment(r.redisLeaderDeployment(guestbook))
+	if result != nil {
+		return *result, err
+	}
+	result, err = r.ensureService(r.redisLeaderService(guestbook))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureDeployment(r.redisFollowerDeployment(guestbook))
+	if result != nil {
+		return *result, err
+	}
+	result, err = r.ensureService(r.redisFollowerService(guestbook))
+	if result != nil {
+		return *result, err
+	}
+	result, err = r.handleRedisFollowerChanges(guestbook)
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureDeployment(r.frontendDeployment(guestbook))
+	if result != nil {
+		return *result, err
+	}
+	result, err = r.ensureService(r.frontendService(guestbook))
+	if result != nil {
+		return *result, err
+	}
+	result, err = r.handleFrontendChanges(guestbook)
+	if result != nil {
+		return *result, err
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -58,5 +109,7 @@ func (r *GuestbookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 func (r *GuestbookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appv1alpha1.Guestbook{}).
+		Owns(&appsv1.Deployment{}).
+		Owns(&corev1.Service{}).
 		Complete(r)
 }
