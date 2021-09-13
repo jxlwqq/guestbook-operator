@@ -83,7 +83,7 @@ make manifests
 ### 实现控制器
 
 > 由于逻辑较为复杂，代码较为庞大，所以无法在此全部展示，完整的操作器代码请参见 controllers 目录。
-在本例中，将生成的控制器文件 controllers/wordpress_controller.go 替换为以下示例实现：
+在本例中，将生成的控制器文件 controllers/guestbook_controller.go 替换为以下示例实现：
 ```go
 /*
 Copyright 2021.
@@ -206,3 +206,28 @@ func (r *GuestbookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 ```shell
 make manifests
 ```
+
+### 运行 Operator
+
+捆绑 Operator，并使用 Operator Lifecycle Manager（OLM）在集群中部署。
+
+修改 Makefile 中 IMAGE_TAG_BASE 和 IMG：
+
+```makefile
+IMAGE_TAG_BASE ?= docker.io/jxlwqq/guestbook-operator
+IMG ?= $(IMAGE_TAG_BASE):latest
+```
+
+构建镜像：
+
+```shell
+make docker-build
+```
+
+将镜像推送到镜像仓库：
+```shell
+make docker-push
+```
+
+成功后访问：https://hub.docker.com/r/jxlwqq/guestbook-operator
+
