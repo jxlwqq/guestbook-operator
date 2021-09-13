@@ -306,7 +306,7 @@ redis-leader     ClusterIP   10.106.255.152   <none>        6379/TCP       24s
 更新 CR：
 
 ```shell
-# 修改副本数和 Guestbook 版本
+# 修改frontend 和 redis 副本数
 kubectl patch guestbook guestbook-sample -p '{"spec":{"frontendSize": 3, "redisFollowerSize": 3}}' --type=merge
 ```
 
