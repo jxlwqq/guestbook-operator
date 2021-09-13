@@ -259,3 +259,65 @@ operator-sdk olm install
 # 使用 Operator SDK 中的 OLM 集成在集群中运行 Operator
 operator-sdk run bundle docker.io/jxlwqq/guestbook-operator-bundle:v0.0.1
 ```
+
+### 创建自定义资源
+
+编辑 config/samples/app_v1alpha1_guestbook.yaml 上的 Guestbook CR 清单示例，使其包含以下规格：
+
+```yaml
+apiVersion: app.jxlwqq.github.io/v1alpha1
+kind: Guestbook
+metadata:
+  name: guestbook-sample
+spec:
+  # Add fields here
+  frontendSize: 2
+  redisFollowerSize: 2
+```
+
+创建 CR：
+```shell
+kubectl apply -f config/samples/app_v1alpha1_guestbook.yaml
+```
+
+查看 Pod：
+```shell
+NAME                              READY   STATUS    RESTARTS   AGE
+frontend-85595f5bf9-jrcp4         1/1     Running   0          9s
+frontend-85595f5bf9-q8fkl         1/1     Running   0          9s
+redis-follower-76c5cc5b79-fxxlq   1/1     Running   0          9s
+redis-follower-76c5cc5b79-g8vnf   1/1     Running   0          9s
+redis-leader-6666df964-vjhp2      1/1     Running   0          9s
+```
+
+查看 Service：
+```shell
+NAME             TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+frontend         NodePort    10.106.145.169   <none>        80:30693/TCP   24s
+kubernetes       ClusterIP   10.96.0.1        <none>        443/TCP        4m58s
+redis-follower   ClusterIP   10.108.30.112    <none>        6379/TCP       24s
+redis-leader     ClusterIP   10.106.255.152   <none>        6379/TCP       24s
+```
+
+浏览器访问：http://localhost:30693
+
+网页上会显示出 Guestbook 的表单页面。
+
+更新 CR：
+
+```shell
+# 修改副本数和 Guestbook 版本
+kubectl patch guestbook guestbook-sample -p '{"spec":{"frontendSize": 3, "redisFollowerSize": 3}}' --type=merge
+```
+
+查看 Pod：
+```shell
+NAME                              READY   STATUS    RESTARTS   AGE
+frontend-85595f5bf9-4pmfj         1/1     Running   0          4s
+frontend-85595f5bf9-jrcp4         1/1     Running   0          50s
+frontend-85595f5bf9-q8fkl         1/1     Running   0          50s
+redis-follower-76c5cc5b79-bxbb4   1/1     Running   0          4s
+redis-follower-76c5cc5b79-fxxlq   1/1     Running   0          50s
+redis-follower-76c5cc5b79-g8vnf   1/1     Running   0          50s
+redis-leader-6666df964-vjhp2      1/1     Running   0          50s
+```
