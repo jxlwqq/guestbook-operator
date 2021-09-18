@@ -17,10 +17,10 @@
 * Go: >= 1.17
 
 > jxlwqq 为笔者的 ID，命令行和代码中涉及的个人 ID，均需要替换为读者自己的，包括
-> * `--domain=`
-> * `--repo=`
-> * `//+kubebuilder:rbac:groups=`
-> * `IMAGE_TAG_BASE ?=`
+> * 命令行参数中的 `--domain=`
+> * 命令行参数中的 `--repo=`
+> * controllers/guestbook_controller.go 文件中的 `//+kubebuilder:rbac:groups=`
+> * Makefile 文件中的 `IMAGE_TAG_BASE ?=`
 
 ### 创建项目
 
